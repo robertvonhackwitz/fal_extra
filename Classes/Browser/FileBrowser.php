@@ -104,6 +104,12 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
      * @var int
      */
     protected $firstElementNumber = 0;
+    
+    /**
+     * 
+     * @var integer
+     */
+    protected $elementBrowserCols = 3;
 
     /**
      * Loads additional JavaScript
@@ -118,6 +124,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fal_extra']);
         $this->elementBrowserThumbEnable = (int)$extensionConfiguration['elementBrowserThumbEnable'];
         $this->elementBrowserMaxTitleLen = (int)$extensionConfiguration['elementBrowserMaxTitleLen'];
+        $this->elementBrowserCols = (int)$extensionConfiguration['elementBrowserCols'];
         // RVH: end
         
         $thumbnailConfig = $this->getBackendUser()->getTSConfig()['options.']['file_list.']['thumbnail.'] ?? [];
@@ -416,7 +423,9 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         }
         
         // RVH: end
-
+        // RVH: begin
+        $cc = 0;
+        // RVH: end
         foreach ($files as $fileObject) {
             $fileExtension = $fileObject->getExtension();
             // Thumbnail/size generation:
@@ -455,7 +464,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
                 $clickIcon = '<img src="' . $imageUrl . '"'
                    // . ' width="' . $processedFile->getProperty('width') . '"'
                    // . ' height="' . $processedFile->getProperty('height') . '"'
-                    . ' hspace="5" vspace="5" border="1" class="img-responsive" />';
+                    . '   />';
             } else {
                 $clickIcon = '';
                 $pDim = '';
@@ -464,7 +473,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $size = ' (' . GeneralUtility::formatSize($fileObject->getSize(), $this->getLanguageService()->sL('LLL:EXT:core/Resources/Private/Language/locallang_common.xlf:byteSizeUnits')) . ($pDim ? ', ' . $pDim : '') . ')';
             // RVH: adde if (!$noThumbs) {
             if (!$noThumbs) {
-                $icon = '<span title="id=' . htmlspecialchars($fileObject->getUid()) . '" class="fal-extra-fileicon">' . $this->iconFactory->getIconForResource($fileObject, Icon::SIZE_DEFAULT) . '</span>';
+                $icon = '<span title="id=' . htmlspecialchars($fileObject->getUid()) . '" class="fileicon btn btn-default">' . $this->iconFactory->getIconForResource($fileObject, Icon::SIZE_DEFAULT) . '</span>';
             } else {
                 $icon = '<span title="id=' . htmlspecialchars($fileObject->getUid()) . '">' . $this->iconFactory->getIconForResource($fileObject, Icon::SIZE_SMALL) . '</span>';
             }
@@ -515,8 +524,14 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             
             if (!$noThumbs) {
                 // Big thumbs
-                $lines[] = '<div class="col-xs-12 col-sm-3">';
-                $lines[] = '    <div class="thumbnail">';
+                if(($cc%$this->elementBrowserCols)==0) {
+                    $lines[] = '<tr><td>';
+                } else {
+                    $lines[] = '<td>';
+                }
+                
+               // $lines[] = '<div class="col-xs-12 col-sm-3">';
+               // $lines[] = '    <div class="thumbnail-custom">';
                 $lines[] = '        <div class="btn-group">';
                 $lines[] =              $ATag . $ATag_e;
     			$lines[] = '             <a href="' . htmlspecialchars($Ahref) . '" class="btn btn-default" title="';
@@ -528,11 +543,18 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
     			$lines[] = '         <div class="big-thumb-image">';  
     			$lines[] = '' . $ATag_alt . $clickIcon . $ATag_e . '';
     			$lines[] = '         </div>';
-                $lines[] = '        <div class="caption">';
+    			$lines[] = '        <div class="big-thumb-caption">';
+    			// $lines[] = 'modulo=' . $cc%$this->elementBrowserCols . ' cc=' . $cc .'|';
                 $lines[] = '' . $ATag_alt . htmlspecialchars(GeneralUtility::fixed_lgd_cs($fileObject->getName(), $titleLen)) . $ATag_e . '';
                 $lines[] = '        </div>';
-                $lines[] = '    </div>';
-                $lines[] = '</div>';
+                // $lines[] = '    </div>';
+                // $lines[] = '</div>';                  
+                    
+                if (($cc%$this->elementBrowserCols)==($this->elementBrowserCols-1) || $cc==($this->iLimit-1)) {
+                    $lines[] = '</td></tr>';
+                } else {
+                    $lines[] = '</td>';
+                }
             } else {
                 $lines[] = '
     					<tr class="file_list_normal">
@@ -557,6 +579,10 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
     					</tr>';
                 }
             }
+
+            // RVH: begin
+            $cc++;
+            // RVH: end
         }
 
         $markup = [];
@@ -569,28 +595,31 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $markup[] = '   ' . $this->getBulkSelector($filesCount);
         }
         $markup[] = '   <!-- Filelisting -->';
-        $markup[] = '   <div class="table-fit">';
+        // $markup[] = '   <div class="table-fit">';
         
         // RVH: added if !$noThumbs ...
         if (!$noThumbs) {
             // Big thumbs
             $markup[] = '           ' . implode('', $linesHeader);
             $markup[] = '' . $this->renderListNavigation() . '';
-            $markup[] = '       <div class="row">';
+            // $markup[] = '   <div class="table-filelist">';
+            $markup[] = '       <table class="table" id="typo3-filelist">';
             $markup[] = '           ' . implode('', $lines);
-            $markup[] = '       </div>';
+            $markup[] = '       </table';
+            // $markup[] = '   </div>';
         } else {
             $markup[] = '       <table class="table table-striped table-hover" id="typo3-filelist">';
             $markup[] = '           ' . implode('', $lines);
             $markup[] = '       </table>';
         }
 
-        $markup[] = '   </div>';
+       // $markup[] = '   </div>';
+       
+        // RVH: end
+        $markup[] = ' </div>';
         if (!$noThumbs) {
             $markup[] = '   ' . $this->getBulkSelector($filesCount);
         }
-        // RVH: end
-        $markup[] = ' </div>';
         $content = implode('', $markup);
 
         return $content;
