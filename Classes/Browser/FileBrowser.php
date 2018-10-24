@@ -523,6 +523,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
              */
             
             if (!$noThumbs) {
+                
                 // Big thumbs
                 if(($cc%$this->elementBrowserCols)==0) {
                     $lines[] = '<tr><td>';
