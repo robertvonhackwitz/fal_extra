@@ -1,0 +1,19 @@
+{
+	"name" : "rvh/falextra",
+	"type" : "typo3-cms-extension",
+	"description" : "Extend FAL",
+	"homepage" : "http://usb.it",
+	"license" : "GPL-2.0+",
+	"require" : {
+		"typo3/cms-core" : "^8.7.13|| ^9.5.0"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"RVH\\FalExtra\\" : "Classes"
+		}
+	},
+	"replace" : {
+		"falextra" : "self.version",
+		"typo3-ter/falextra" : "self.version"
+	}
+}

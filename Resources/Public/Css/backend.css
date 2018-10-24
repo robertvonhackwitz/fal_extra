@@ -1,0 +1,27 @@
+@charset "UTF-8";
+
+.fal-extra-browser {
+	
+}
+
+.fal-extra-browser #filelist .col-xs-12, 
+.fal-extra-browser #filelist .col-sm-3 {
+	padding-right:0;
+}
+
+.fal-extra-browser #filelist .thumbnail {
+	
+}
+
+.fal-extra-browser #filelist .thumbnail .caption {
+	overflow: hidden;
+	background-color: #eee;
+}
+
+.fal-extra-browser #filelist .thumbnail .fal-extra-fileicon {
+	
+}
+
+.fal-extra-browser #filelist .thumbnail a.btn-default {
+	margin:0 1px 0 0;
+}

@@ -1,0 +1,21 @@
+# Element Browser Thumbnails
+###########################
+
+# cat=Element Browser Thumbnails; type=boolean; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_thumbs.enable
+elementBrowserThumbEnable = 1
+
+# cat=Element Browser Thumbnails; type=string; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_thumbs.width
+elementBrowserThumbWidth = 128c
+
+# cat=Element Browser Thumbnails; type=string; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_thumbs.height
+elementBrowserThumbHeight = 128c
+
+# cat=Element Browser Thumbnails; type=int; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB.maxTitleLength
+elementBrowserMaxTitleLen = 25
+
+# cat=Element Browser Thumbnails; type=int; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB.cols
+elementBrowserCols = 3
+
+# Element Browser Page Browser
+# cat=Element Browser Page Browser; type=boolean; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_pagebrowser.enable
+elementBrowserPageBrowserEnable = 1

@@ -1,0 +1,17 @@
+lib.fluidContent.settings.media.videopopup {
+    typolink {
+        parameter {
+            cObject = CASE
+            cObject {
+                key.data = file:current:extension
+
+                facebook = TEXT
+                facebook.data = file:current:contents
+                facebook.wrap = https://www.facebook.com/v2.5/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fvideo.php%3Fv%3D|
+            }
+        }
+
+        ATagParams = data-toggle="lightbox" data-title="{file:current:title}" data-footer="{file:current:description}"
+        ATagParams.insertData = 1
+    }
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="messages" date="2014-06-02T11:48:25Z" product-name="fal_extra">
+        <header/>
+        <body>
+        	<trans-unit id="elB_thumbs.enable" xml:space="preserve">
+        	 	<source>Enable Alternative Thumbnails View</source>
+            </trans-unit>
+            <trans-unit id="elB_pagebrowser.enable" xml:space="preserve">
+        	 	<source>Enable Page Browser</source>
+            </trans-unit>
+            <trans-unit id="elB_thumbs.width" xml:space="preserve">
+                <source>Thumbnails Width</source>
+            </trans-unit>
+            <trans-unit id="elB_thumbs.height" xml:space="preserve">
+            	<source>Thumbnails Height</source>
+            </trans-unit>
+            <trans-unit id="elB.maxTitleLength" xml:space="preserve">
+                <source>Max Title Length</source>
+	    </trans-unit>
+	    <trans-unit id="elB.cols" xml:space="preserve">
+                <source>Number of columns</source>
+	    </trans-unit>
+        </body>
+    </file>
+</xliff>
