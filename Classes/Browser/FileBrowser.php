@@ -29,11 +29,12 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Recordlist\Tree\View\LinkParameterProviderInterface;
-// _RVH:
+// _RVH: begin
 // use TYPO3\CMS\Recordlist\View\FolderUtilityRenderer;
 use RVH\FalExtra\View\FolderUtilityRenderer;
 use TYPO3\CMS\Recordlist\Browser\AbstractElementBrowser;
 use TYPO3\CMS\Recordlist\Browser\ElementBrowserInterface;
+// _RVH: end
 
 /**
  * Browser for files
@@ -171,6 +172,8 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         $this->expandFolder = GeneralUtility::_GP('expandFolder');
         $this->searchWord = (string)GeneralUtility::_GP('searchWord');
         $this->firstElementNumber = (int)GeneralUtility::_GP('pointer');
+        $this->iLimit = (int)GeneralUtility::_GP('jumpLimit')>0?(int)GeneralUtility::_GP('jumpLimit'):$this->iLimit;
+        
     }
     
     /**
@@ -344,8 +347,8 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $extensionList = !empty($extensionList) && $extensionList[0] === '*' ? [] : $extensionList;
             
             // _RVH: begin
-            // If big thumbs count files for pager otherwise the classical way
-            if (!$noThumbs) {
+            // If elementBrowserPageBrowserEnable count files for pager otherwise the classical way
+            if ($this->elementBrowserPageBrowserEnable) {
                 $this->totalItems = $this->getCountFilesInFolder($folder, $extensionList);
                 $files = $this->getFilesInFolder($folder, $extensionList);
                 $filesCount = $this->totalItems;
@@ -577,11 +580,13 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         }
         
         $markup = [];
-        $markup[] = '<h3>' . htmlspecialchars($lang->getLL('files')) . ' ' . $filesCount . ':</h3>';
+        // _RVH: begin
+        // Removed $filesCount, moved to list navigation
+        // $markup[] = '<h3>' . htmlspecialchars($lang->getLL('files')) . ' ' . $filesCount . ':</h3>';
         $markup[] = GeneralUtility::makeInstance(FolderUtilityRenderer::class, $this)->getFileSearchField($this->searchWord);
         $markup[] = '<div id="filelist">';
+        
         // _RVH: begin
-       
         $markup[] = '   <!-- Filelisting -->';
         // $markup[] = '   <div class="table-fit">';
         
@@ -591,20 +596,27 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             // Big thumbs
             $markup[] = '           ' . implode('', $linesHeader);
             if ( $this->elementBrowserPageBrowserEnable ) {
-                $markup[] = '' . $this->renderListNavigation() . '';
+                $markup[] = '' . $this->renderListNavigation('top') . '';
             }
             // $markup[] = '   <div class="table-filelist">';
             $markup[] = '       <table class="table" id="typo3-filelist">';
             $markup[] = '           ' . implode('', $lines);
             $markup[] = '       </table';
+            if ( $this->elementBrowserPageBrowserEnable ) {
+                $markup[] = '' . $this->renderListNavigation('bottom') . '';
+            }
+            
             // $markup[] = '   </div>';
         } else {
             if ( $this->elementBrowserPageBrowserEnable ) {
-                $markup[] = '' . $this->renderListNavigation() . '';
+                $markup[] = '' . $this->renderListNavigation('top') . '';
             }
             $markup[] = '       <table class="table table-striped table-hover" id="typo3-filelist">';
             $markup[] = '           ' . implode('', $lines);
             $markup[] = '       </table>';
+            if ( $this->elementBrowserPageBrowserEnable ) {
+                $markup[] = '' . $this->renderListNavigation('bottom') . '';
+            }
         }
         
         // $markup[] = '   </div>';
@@ -815,66 +827,93 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $next = '<li class="disabled"><span>' . $this->iconFactory->getIcon('actions-view-paging-next', Icon::SIZE_SMALL)->render() . '</span></li>';
             $last = '<li class="disabled"><span>' . $this->iconFactory->getIcon('actions-view-paging-last', Icon::SIZE_SMALL)->render() . '</span></li>';
         }
-        $reload = '<li><a href="#" onclick="document.dblistForm.action=' . GeneralUtility::quoteJSvalue($listURL
+        $reload = '<li><a href="#" onclick="return jumpToUrl(' . GeneralUtility::quoteJSvalue($listURL
             . '&pointer=') . '+calculatePointer(document.getElementById(' . GeneralUtility::quoteJSvalue('jumpPage-' . $renderPart)
-            . ').value); document.dblistForm.submit(); return true;" title="'
+            . ').value,document.getElementById(' . GeneralUtility::quoteJSvalue('jumpLimit-' . $renderPart)
+            . ').options[document.getElementById(' . GeneralUtility::quoteJSvalue('jumpLimit-' . $renderPart)
+            . ').selectedIndex].value));" title="'
                 . htmlspecialchars($this->getLanguageService()->sL('LLL:EXT:lang/Resources/Private/Language/locallang_common.xlf:reload')) . '">'
                     . $this->iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL)->render() . '</a></li>';
-                    if ($renderPart === 'top') {
-                        // Add js to traverse a page select input to a pointer value
-                        $content = '
+        
+        if ($renderPart === 'top') {
+            // Add js to traverse a page select input to a pointer value
+            $content = '
 <script type="text/javascript">
 /*<![CDATA[*/
-	function calculatePointer(page) {
+	function calculatePointer(page,iLimit) {
 		if (page > ' . $totalPages . ') {
 			page = ' . $totalPages . ';
 		}
 		if (page < 1) {
 			page = 1;
 		}
-		return (page - 1) * ' . $this->iLimit . ';
+		return (page - 1) * iLimit;
 	}
 /*]]>*/
 </script>
-';
-                    }
-                    $pageNumberInput = '
+            ';
+        }
+        $pageNumberInput = '
 			<input type="number" min="1" max="' . $totalPages . '" value="' . $currentPage . '" size="3" class="form-control input-sm paginator-input" id="jumpPage-' . $renderPart . '" name="jumpPage-'
-			    . $renderPart . '" onkeyup="if (event.keyCode == 13) { document.dblistForm.action=' . htmlspecialchars(GeneralUtility::quoteJSvalue($listURL . '&pointer='))
-			    . '+calculatePointer(this.value); document.dblistForm.submit(); } return true;" />
+			    . $renderPart . '" onkeyup="if (event.keyCode == 13) { 
+                    return jumpToUrl(' . htmlspecialchars(GeneralUtility::quoteJSvalue($listURL . '&pointer='))
+			    . '+calculatePointer(this.value,document.getElementById(' . GeneralUtility::quoteJSvalue('jumpLimit-' . $renderPart)
+            . ').options[document.getElementById(' . GeneralUtility::quoteJSvalue('jumpLimit-' . $renderPart)
+            . ').selectedIndex].value)); }" />
 			';
-			    $pageIndicatorText = sprintf(
-			        $this->getLanguageService()->sL('LLL:EXT:lang/Resources/Private/Language/locallang_mod_web_list.xlf:pageIndicator'),
-			        $pageNumberInput,
-			        $totalPages
-			        );
-			    $pageIndicator = '<li><span>' . $pageIndicatorText . '</span></li>';
-			    if ($this->totalItems > $this->firstElementNumber + $this->iLimit) {
-			        $lastElementNumber = $this->firstElementNumber + $this->iLimit;
-			    } else {
-			        $lastElementNumber = $this->totalItems;
-			    }
-			    $rangeIndicator = '<li><span>'
-			        . sprintf($this->getLanguageService()
-			            ->sL('LLL:EXT:lang/Resources/Private/Language/locallang_mod_web_list.xlf:rangeIndicator'), ($this->firstElementNumber + 1), $lastElementNumber)
-			            . '</span></li>';
-			            
-			            $titleColumn = $this->fieldArray[0];
-			            $data = [
-			                $titleColumn => $content . '
-				<nav class="pagination-wrap">
-					<ul class="pagination pagination-block">
-						' . $first . '
-						' . $previous . '
-						' . $rangeIndicator . '
-						' . $pageIndicator . '
-						' . $next . '
-						' . $last . '
-						' . $reload . '
-					</ul>
-				</nav>
-			'
-			            ];
-			            return implode($data);
+        $pageIndicatorText = sprintf(
+            $this->getLanguageService()->sL('LLL:EXT:lang/Resources/Private/Language/locallang_mod_web_list.xlf:pageIndicator'),
+            $pageNumberInput,
+            $totalPages
+        );
+        $pageIndicator = '<li><span>' . $pageIndicatorText . '</span></li>';
+        if ($this->totalItems > $this->firstElementNumber + $this->iLimit) {
+            $lastElementNumber = $this->firstElementNumber + $this->iLimit;
+        } else {
+            $lastElementNumber = $this->totalItems;
+        }
+        $rangeIndicator = '<li><span>'
+            . sprintf($this->getLanguageService()
+            ->sL('LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:rangeIndicator'), ($this->firstElementNumber + 1), $lastElementNumber, $this->totalItems)
+            . '</span></li>';
+    
+        // _RVH: begin
+
+        $onChange = 'onchange="return jumpToUrl(' . htmlspecialchars(GeneralUtility::quoteJSvalue($listURL . '&jumpLimit=50&pointer='))
+			    . '+calculatePointer(document.getElementById(' . GeneralUtility::quoteJSvalue('jumpPage-' . $renderPart)
+			    . ').value,this.options[this.selectedIndex].value)'
+
+                . ');"';
+        $elementsNumberInput ='
+            <select class="form-control input-sm paginator-input" id="jumpLimit-' . $renderPart . '" name="jumpLimit" ' . $onChange . '>
+                <option value="10" ' . ($this->iLimit==10?'selected':'') . '>10</option>
+                <option value="20" ' . ($this->iLimit==20?'selected':'') . '>20</option>
+                <option value="30" ' . ($this->iLimit==30?'selected':'') . '>30</option>
+                <option value="50" ' . ($this->iLimit==50?'selected':'') . '>50</option>
+                <option value="100" ' . ($this->iLimit==100?'selected':'') . '>100</option>
+            </select>
+        ';
+        $elementsNumberInputText = $this->getLanguageService()->sL('LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:itemsPerPage');
+        
+        $elementsNumber = '<li><span>' . $elementsNumberInputText . $elementsNumberInput . '</span></li>';
+    
+        $titleColumn = $this->fieldArray[0];
+        $data = [
+        $titleColumn => $content . '
+    	<nav class="pagination-wrap">
+    		<ul class="pagination pagination-block">
+    			' . $first . '
+    			' . $previous . '
+    			' . $rangeIndicator . '
+    			' . $pageIndicator . '
+                ' . $elementsNumber . '
+    			' . $next . '
+    			' . $last . '
+    			' . $reload . '
+    		</ul>
+    	</nav>
+    '
+                ];
+        return implode($data);
     }
 }
