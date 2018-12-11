@@ -17,10 +17,16 @@
             </trans-unit>
             <trans-unit id="elB.maxTitleLength" xml:space="preserve">
                 <source>Max Title Length</source>
-	    </trans-unit>
-	    <trans-unit id="elB.cols" xml:space="preserve">
-                <source>Number of columns</source>
-	    </trans-unit>
+	    	</trans-unit>
+		    <trans-unit id="elB.cols" xml:space="preserve">
+	                <source>Number of columns</source>
+		    </trans-unit>
+	    	<trans-unit id="rangeIndicator">
+				<source>Files %1$d - %2$d of %3$d</source>
+			</trans-unit>
+			<trans-unit id="itemsPerPage" xml:space="preserve">
+	                <source>Show: </source>
+		    </trans-unit>
         </body>
     </file>
 </xliff>
