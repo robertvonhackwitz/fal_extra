@@ -9,4 +9,3 @@ defined('TYPO3_MODE') || die();
     'Configuration/TypoScript',
     'Fal Extra'
     );
-
