@@ -49,3 +49,7 @@
 	padding:5px 3px;
 }
 
+.fal-extra-browser #filelist .form-control {
+	min-width: auto;
+}
+
