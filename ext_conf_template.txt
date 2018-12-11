@@ -19,3 +19,4 @@ elementBrowserCols = 3
 # Element Browser Page Browser
 # cat=Element Browser Page Browser; type=boolean; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_pagebrowser.enable
 elementBrowserPageBrowserEnable = 1
+
