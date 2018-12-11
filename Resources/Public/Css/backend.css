@@ -18,6 +18,10 @@
 .fal-extra-browser #filelist span.fileicon.btn.btn-default {
 	padding:0;
 }
+.fal-extra-browser #filelist .btn-group.btn-group-fal-extra a,
+.fal-extra-browser #filelist .btn-group.btn-group-fal-extra label {
+	margin:0 4px 0 0;
+}
 .fal-extra-browser #filelist span.fileicon.btn.btn-default .icon-size-default {
 	width:30px;
 	height:30px;
@@ -32,10 +36,16 @@
 
 .fal-extra-browser #filelist .big-thumb-image {
 	margin:4px 0;
+	padding:2px;
+	border:1px solid #CCC;
+}
+
+.fal-extra-browser #filelist .big-thumb-image img {
+	
 }
 
 .fal-extra-browser #filelist .big-thumb-caption {
 	background-color:#eee;
-	padding:3px;
+	padding:5px 3px;
 }
 

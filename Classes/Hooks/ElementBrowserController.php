@@ -16,18 +16,31 @@ namespace RVH\FalExtra\Hooks;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Template\DocumentTemplate;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Compatibility\PublicMethodDeprecationTrait;
+use TYPO3\CMS\Core\Http\HtmlResponse;
+use TYPO3\CMS\Core\Http\RedirectResponse;
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Lang\LanguageService;
 use TYPO3\CMS\Recordlist\Browser\ElementBrowserInterface;
 
 /**
  * Script class for the Element Browser window.
+ * @internal This class is a specific Backend controller implementation and is not part of the TYPO3's Core API.
  */
 class ElementBrowserController
 {
+    use PublicMethodDeprecationTrait;
+
+    /**
+     * @var array
+     */
+    private $deprecatedPublicMethods = [
+        'main' => 'Using ElementBrowserController::main() is deprecated and will not be possible anymore in TYPO3 v10.0.',
+    ];
+
     /**
      * The mode determines the main kind of output of the element browser.
      *
@@ -49,22 +62,6 @@ class ElementBrowserController
     public $doc;
 
     /**
-     * @return string
-     */
-    public function getMode()
-    {
-        return $this->mode;
-    }
-
-    /**
-     * @param string $mode
-     */
-    public function setMode($mode)
-    {
-        $this->mode = $mode;
-    }
-
-    /**
      * Constructor
      */
     public function __construct()
@@ -77,6 +74,29 @@ class ElementBrowserController
 
         $this->init();
     }
+
+    /**
+     * Initialize the controller
+     */
+    protected function init()
+    {
+        $this->getLanguageService()->includeLLFile('EXT:recordlist/Resources/Private/Language/locallang_browse_links.xlf');
+
+        $this->mode = GeneralUtility::_GP('mode');
+    }
+
+    public function render($mode,$pObj)
+    {
+        $browser = $this->getElementBrowserInstance();
+        $backendUser = $this->getBackendUser();
+        $modData = $backendUser->getModuleData('browse_links.php', 'ses');
+        list($modData) = $browser->processSessionData($modData);
+        $backendUser->pushModuleData('browse_links.php', $modData);
+        
+        $content = $browser->render();
+        
+        return $content;
+    }
     
     /**
      * Check if mode is valid
@@ -87,42 +107,12 @@ class ElementBrowserController
      */
     public function isValid($mode,$pObj)
     {
-
-        if($mode === 'file') {
+        if($mode == 'file') {
             return true;
         } else {
             return false;
         }
         
-    }
-    
-    public function render($mode,$pObj)
-    {
-        $content = '';
-        
-        $this->setMode($mode);
-        
-        $browser = $this->getElementBrowserInstance();
-        
-        $backendUser = $this->getBackendUser();
-        $modData = $backendUser->getModuleData('browse_links.php', 'ses');
-        list($modData) = $browser->processSessionData($modData);
-        $backendUser->pushModuleData('browse_links.php', $modData);
-        
-        $content = $browser->render();
-        
-        return $content;
-    }
-
-    /**
-     * Initialize the controller
-     */
-    protected function init()
-    {
-
-        $this->getLanguageService()->includeLLFile('EXT:fal_extra/Resources/Private/Language/locallang_be.xlf');
-        $this->mode = GeneralUtility::_GP('mode');
-
     }
 
     /**
@@ -135,10 +125,9 @@ class ElementBrowserController
      */
     protected function getElementBrowserInstance()
     {
-        // RVH
-        // $className = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ElementBrowsers'][$this->mode];
+        // _RVH
+        //$className = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ElementBrowsers'][$this->mode];
         $className = 'RVH\FalExtra\Browser\FileBrowser';
-        
         $browser = GeneralUtility::makeInstance($className);
         if (!$browser instanceof ElementBrowserInterface) {
             throw new \UnexpectedValueException('The specified element browser "' . $className . '" does not implement the required ElementBrowserInterface', 1442763890);

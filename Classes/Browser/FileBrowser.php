@@ -1,6 +1,7 @@
 <?php
 namespace RVH\FalExtra\Browser;
 
+
 /*
  * This file is part of the TYPO3 CMS project.
  *
@@ -28,10 +29,11 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Recordlist\Tree\View\LinkParameterProviderInterface;
-use TYPO3\CMS\Recordlist\Browser\ElementBrowserInterface;
-use TYPO3\CMS\Recordlist\Browser\AbstractElementBrowser;
-// RVH: use TYPO3\CMS\Recordlist\View\FolderUtilityRenderer;
+// _RVH:
+// use TYPO3\CMS\Recordlist\View\FolderUtilityRenderer;
 use RVH\FalExtra\View\FolderUtilityRenderer;
+use TYPO3\CMS\Recordlist\Browser\AbstractElementBrowser;
+use TYPO3\CMS\Recordlist\Browser\ElementBrowserInterface;
 
 /**
  * Browser for files
@@ -48,37 +50,35 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
      * @var string|null
      */
     protected $expandFolder;
-
+    
     /**
      * @var Folder
      */
     protected $selectedFolder;
-
+    
     /**
      * Holds information about files
      *
      * @var mixed[][]
      */
     protected $elements = [];
-
+    
     /**
      * @var string
      */
     protected $searchWord;
-
+    
     /**
      * @var FileRepository
      */
     protected $fileRepository;
-
+    
     /**
      * @var array
      */
     protected $thumbnailConfiguration = [];
     
-    /**
-     * RVH: begin
-     */
+    // _RVH: begin
     
     /**
      * @var int
@@ -106,11 +106,18 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
     protected $firstElementNumber = 0;
     
     /**
-     * 
+     *
      * @var integer
      */
     protected $elementBrowserCols = 3;
-
+    
+    /**
+     * @var integer
+     */
+    protected $elementBrowserPageBrowserEnable = 0;
+    
+    // _RVH: end
+    
     /**
      * Loads additional JavaScript
      */
@@ -119,24 +126,19 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         parent::initialize();
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Recordlist/BrowseFiles');
         $this->fileRepository = GeneralUtility::makeInstance(FileRepository::class);
-
-        // RVH: begin: extension configuration values
+        
+        // _RVH: begin: extension configuration values
         $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fal_extra']);
         $this->elementBrowserThumbEnable = (int)$extensionConfiguration['elementBrowserThumbEnable'];
+        $this->elementBrowserPageBrowserEnable = (int)$extensionConfiguration['elementBrowserPageBrowserEnable'];
         $this->elementBrowserMaxTitleLen = (int)$extensionConfiguration['elementBrowserMaxTitleLen'];
         $this->elementBrowserCols = (int)$extensionConfiguration['elementBrowserCols'];
-        // RVH: end
-        
-        $thumbnailConfig = $this->getBackendUser()->getTSConfig()['options.']['file_list.']['thumbnail.'] ?? [];
-        
-        // RVH: begin if fal_extra thumbnails enabled use width & height from ext configuration, otherwise the classic way
+        // _RVH: end
+
+        // _RVH: begin if fal_extra thumbnails enabled use width & height from ext configuration, otherwise the classic way
         if ($this->elementBrowserThumbEnable) {
-            $thumbnailConfigExt = [
-                'width' => $extensionConfiguration['elementBrowserThumbWidth'],
-                'height' => $extensionConfiguration['elementBrowserThumbHeight']
-            ];
             
-            $thumbnailConfig = $thumbnailConfig ?? $thumbnailConfigExt;
+            $thumbnailConfig = $this->getBackendUser()->getTSConfig()['options.']['file_list.']['bigThumbnail.'] ?? [];
             
             if (isset($thumbnailConfig['width'])) {
                 $this->thumbnailConfiguration['width'] = $thumbnailConfig['width'];
@@ -147,6 +149,9 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             }
             
         } else {
+            
+            $thumbnailConfig = $this->getBackendUser()->getTSConfig()['options.']['file_list.']['thumbnail.'] ?? [];
+            
             if (isset($thumbnailConfig['width']) && MathUtility::canBeInterpretedAsInteger($thumbnailConfig['width'])) {
                 $this->thumbnailConfiguration['width'] = (int)$thumbnailConfig['width'];
             }
@@ -154,10 +159,9 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
                 $this->thumbnailConfiguration['height'] = (int)$thumbnailConfig['height'];
             }
         }
-        
-        // RVH: end
+        // _RVH: end
     }
-
+    
     /**
      * Checks additional GET/POST requests
      */
@@ -168,7 +172,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         $this->searchWord = (string)GeneralUtility::_GP('searchWord');
         $this->firstElementNumber = (int)GeneralUtility::_GP('pointer');
     }
-
+    
     /**
      * Session data for this class can be set from outside with this method.
      *
@@ -186,14 +190,14 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         }
         return [$data, $store];
     }
-
+    
     /**
      * @return string HTML content
      */
     public function render()
     {
         $backendUser = $this->getBackendUser();
-
+        
         // The key number 3 of the bparams contains the "allowed" string. Disallowed is not passed to
         // the element browser at all but only filtered out in DataHandler afterwards
         $allowedFileExtensions = GeneralUtility::trimExplode(',', explode('|', $this->bparams)[3], true);
@@ -210,7 +214,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         }
         if ($this->expandFolder) {
             $fileOrFolderObject = null;
-
+            
             // Try to fetch the folder the user had open the last time he browsed files
             // Fallback to the default folder in case the last used folder is not existing
             try {
@@ -220,7 +224,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             } catch (\InvalidArgumentException $driverMissingExecption) {
                 // We're just catching the exception here, nothing to be done if the driver does not exist anymore.
             }
-
+            
             if ($fileOrFolderObject instanceof Folder) {
                 // It's a folder
                 $this->selectedFolder = $fileOrFolderObject;
@@ -232,7 +236,8 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         // Or get the user's default upload folder
         if (!$this->selectedFolder) {
             try {
-                $this->selectedFolder = $backendUser->getDefaultUploadFolder();
+                [, $pid, $table,, $field] = explode('-', explode('|', $this->bparams)[4]);
+                $this->selectedFolder = $backendUser->getDefaultUploadFolder($pid, $table, $field);
             } catch (\Exception $e) {
                 // The configured default user folder does not exist
             }
@@ -245,7 +250,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $uploadForm = $folderUtilityRenderer->uploadForm($this->selectedFolder, $allowedFileExtensions);
             $createFolder = $folderUtilityRenderer->createFolder($this->selectedFolder);
         }
-
+        
         // Getting flag for showing/not showing thumbnails:
         $noThumbs = $backendUser->getTSConfig()['options.']['noThumbsInEB'] ?? false;
         $_MOD_SETTINGS = [];
@@ -255,7 +260,9 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $_MCONF['name'] = 'file_list';
             $_MOD_SETTINGS = BackendUtility::getModuleData($_MOD_MENU, GeneralUtility::_GP('SET'), $_MCONF['name']);
         }
-        $noThumbs = $noThumbs ?: !$_MOD_SETTINGS['displayThumbs'];
+        $displayThumbs = $_MOD_SETTINGS['displayThumbs'] ?? false;
+
+        $noThumbs = $noThumbs ?: !$displayThumbs;
         // Create folder tree:
         /** @var ElementBrowserFolderTreeView $folderTree */
         $folderTree = GeneralUtility::makeInstance(ElementBrowserFolderTreeView::class);
@@ -266,19 +273,19 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         } else {
             $files = '';
         }
-
+        
         $this->initDocumentTemplate();
         // Starting content:
         $content = $this->doc->startPage(htmlspecialchars($this->getLanguageService()->getLL('fileSelector')));
-
+        
         // Putting the parts together, side by side:
         $markup = [];
         $markup[] = '<!-- Wrapper table for folder tree / filelist: -->';
-        // RVH: begin
+        // _RVH: begin
         // added class fal-extra-browser
         // $markup[] = '<div class="element-browser">';
         $markup[] = '<div class="element-browser fal-extra-browser">';
-        // RVH: end
+        // _RVH: end
         $markup[] = '   <div class="element-browser-panel element-browser-main">';
         $markup[] = '       <div class="element-browser-main-sidebar">';
         $markup[] = '           <div class="element-browser-body">';
@@ -290,23 +297,23 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         $markup[] = '           <div class="element-browser-body">';
         $markup[] = '               ' . $this->doc->getFlashMessages();
         $markup[] = '               ' . $files;
-        // RVH: begin: DIVS added around $uploadForm & $createFolder
+        // _RVH: begin: DIVS added around $uploadForm & $createFolder
         // $markup[] = '               ' . $uploadForm;
         // $markup[] = '               ' . $createFolder;
         $markup[] = '               <div id="t3UploadForm">' . $uploadForm . '</div>';
         $markup[] = '               <div id="t3CreateFolder">' . $createFolder . '</div>';
-        // RVH: end
+        // _RVH: end
         $markup[] = '           </div>';
         $markup[] = '       </div>';
         $markup[] = '   </div>';
         $markup[] = '</div>';
         $content .= implode('', $markup);
-
+        
         // Ending page, returning content:
         $content .= $this->doc->endPage();
         return $this->doc->insertStylesAndJS($content);
     }
-
+    
     /**
      * For TYPO3 Element Browser: Expand folder of files.
      *
@@ -321,7 +328,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             return '';
         }
         $lang = $this->getLanguageService();
-        // RVH: begin
+        // _RVH: begin
         // If enabled fal_extra use maxTitleLen from EXT Settings
         if ($this->elementBrowserThumbEnable && !$noThumbs) {
             $titleLen = $this->elementBrowserMaxTitleLen;
@@ -329,35 +336,37 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         } else {
             $titleLen = (int)$this->getBackendUser()->uc['titleLen'];
         }
-        // RVH: end
-
+        // _RVH: end
+        
         if ($this->searchWord !== '') {
             $files = $this->fileRepository->searchByName($folder, $this->searchWord);
         } else {
-            // RVH: begin
             $extensionList = !empty($extensionList) && $extensionList[0] === '*' ? [] : $extensionList;
-            // $files = $this->getFilesInFolder($folder, $extensionList);
+            
+            // _RVH: begin
+            // If big thumbs count files for pager otherwise the classical way
             if (!$noThumbs) {
-                // RVH
-                // If big thumbs count files for pager
                 $this->totalItems = $this->getCountFilesInFolder($folder, $extensionList);
                 $files = $this->getFilesInFolder($folder, $extensionList);
+                $filesCount = $this->totalItems;
                 
             } else {
                 $files = $this->getFilesInFolder($folder, $extensionList);
+                $filesCount = count($files);
             }
-
+            // _RVH: end
         }
-        // RVH: if big thumbs use totalItems, if "normal" use normal :-)       
-        // $filesCount = count($files);
-        $filesCount = $this->totalItems??count($files);
-
+        
         $lines = [];
+        
+        // _RVH: begin
+        // if big thumbs change rendering way
         $linesHeader = [];
-
+        // _RVH: end
+        
         // Create the header of current folder:
         $folderIcon = $this->iconFactory->getIconForResource($folder, Icon::SIZE_SMALL);
-
+        
         // RVH: begin
         /*
          * 1) added if !$noThumbs
@@ -368,6 +377,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
          *
          */
         
+        // _RVH: begin: added anchors
         if (!$noThumbs) {
             // Big thumbs
             $linesHeader[] = '<table class="table table-striped table-hover" id="typo3-filelist">';
@@ -413,7 +423,6 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
     					<a href="#" class="btn btn-default" id="t3js-toggleSelection" title="' . htmlspecialchars($lang->getLL('toggleSelection')) . '">' . $this->iconFactory->getIcon('actions-document-select', Icon::SIZE_SMALL) . '</a>
     				</td>
     			</tr>';
-
             if ($filesCount === 0) {
                 $lines[] = '
     				<tr>
@@ -421,7 +430,6 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
     				</tr>';
             }
         }
-        
         // RVH: end
         // RVH: begin
         $cc = 0;
@@ -446,37 +454,37 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
                         );
                 }
                 // RVH: end
-                
+               
                 $imageUrl = $processedFile->getPublicUrl(true);
                 $imgInfo = [
                     $fileObject->getProperty('width'),
                     $fileObject->getProperty('height')
                 ];
                 $pDim = $imgInfo[0] . 'x' . $imgInfo[1] . ' pixels';
-                /* RVH: begin
-                 * 1) removed image width & Height
-                 * 2) added class="img-responsive"
+                
+                // _RVH: remove image width & height ???
+                // TODO:
                 $clickIcon = '<img src="' . $imageUrl . '"'
                     . ' width="' . $processedFile->getProperty('width') . '"'
                     . ' height="' . $processedFile->getProperty('height') . '"'
-                    . ' hspace="5" vspace="5" border="1" />';
-                 */
-                $clickIcon = '<img src="' . $imageUrl . '"'
-                   // . ' width="' . $processedFile->getProperty('width') . '"'
-                   // . ' height="' . $processedFile->getProperty('height') . '"'
-                    . '   />';
+                // _RVH: removed hspace, vspace & border
+                    // . ' hspace="5" vspace="5" border="1" />';
+                . '  />';
             } else {
                 $clickIcon = '';
                 $pDim = '';
             }
             // Create file icon:
             $size = ' (' . GeneralUtility::formatSize($fileObject->getSize(), $this->getLanguageService()->sL('LLL:EXT:core/Resources/Private/Language/locallang_common.xlf:byteSizeUnits')) . ($pDim ? ', ' . $pDim : '') . ')';
-            // RVH: adde if (!$noThumbs) {
+            
+            // _RVH: begin
+            // added if (!$noThumbs) {
             if (!$noThumbs) {
                 $icon = '<span title="id=' . htmlspecialchars($fileObject->getUid()) . '" class="fileicon btn btn-default">' . $this->iconFactory->getIconForResource($fileObject, Icon::SIZE_DEFAULT) . '</span>';
             } else {
                 $icon = '<span title="id=' . htmlspecialchars($fileObject->getUid()) . '">' . $this->iconFactory->getIconForResource($fileObject, Icon::SIZE_SMALL) . '</span>';
             }
+            // _RVH: end
             
             // Create links for adding the file:
             $filesIndex = count($this->elements);
@@ -510,47 +518,35 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
                 'uid' => $fileObject->getCombinedIdentifier(),
                 'returnUrl' => GeneralUtility::getIndpEnv('REQUEST_URI')
             ]);
-
+            
             // Combine the stuff:
             $filenameAndIcon = $ATag_alt . $icon . htmlspecialchars(GeneralUtility::fixed_lgd_cs($fileObject->getName(), $titleLen)) . $ATag_e;
-            // Show element:
             
-            // RVH
-            /**
-             * 1) removed <td class="nowrap">&nbsp;' . $pDim . '</td>
-             * 2) colspan=3
-             * 3) added if !$noThumbs ...
-             */
+            // _RVH: begin
+            // 
             
             if (!$noThumbs) {
-                
                 // Big thumbs
                 if(($cc%$this->elementBrowserCols)==0) {
                     $lines[] = '<tr><td>';
                 } else {
                     $lines[] = '<td>';
                 }
-                
-               // $lines[] = '<div class="col-xs-12 col-sm-3">';
-               // $lines[] = '    <div class="thumbnail-custom">';
-                $lines[] = '        <div class="btn-group">';
+                $lines[] = '        <div class="btn-group btn-group-fal-extra">';
                 $lines[] =              $ATag . $ATag_e;
-    			$lines[] = '             <a href="' . htmlspecialchars($Ahref) . '" class="btn btn-default" title="';
-    			$lines[] = '' . htmlspecialchars($lang->getLL('info')) . '">';
-    			$lines[] = '' . $this->iconFactory->getIcon('actions-document-info', Icon::SIZE_SMALL) . '</a>';
-    			$lines[] = '' . $bulkCheckBox . '';
-    			$lines[] = '' . $ATag_alt . $icon .  $ATag_e . '';
-    			$lines[] = '         </div>';
-    			$lines[] = '         <div class="big-thumb-image">';  
-    			$lines[] = '' . $ATag_alt . $clickIcon . $ATag_e . '';
-    			$lines[] = '         </div>';
-    			$lines[] = '        <div class="big-thumb-caption">';
-    			// $lines[] = 'modulo=' . $cc%$this->elementBrowserCols . ' cc=' . $cc .'|';
-                $lines[] = '' . $ATag_alt . htmlspecialchars(GeneralUtility::fixed_lgd_cs($fileObject->getName(), $titleLen)) . $ATag_e . '';
+                $lines[] = '             <a href="' . htmlspecialchars($Ahref) . '" class="btn btn-default" title="';
+                $lines[] = '                ' . htmlspecialchars($lang->getLL('info')) . '">';
+                $lines[] = '                ' . $this->iconFactory->getIcon('actions-document-info', Icon::SIZE_SMALL) . '</a>';
+                $lines[] = '                ' . $bulkCheckBox . '';
+                $lines[] = '                ' . $ATag_alt . $icon .  $ATag_e . '';
                 $lines[] = '        </div>';
-                // $lines[] = '    </div>';
-                // $lines[] = '</div>';                  
-                    
+                $lines[] = '         <div class="big-thumb-image">';
+                $lines[] = '            ' . $ATag_alt . $clickIcon . $ATag_e . '';
+                $lines[] = '        </div>';
+                $lines[] = '        <div class="big-thumb-caption">';
+                $lines[] = '            ' . $ATag_alt . htmlspecialchars(GeneralUtility::fixed_lgd_cs($fileObject->getName(), $titleLen)) . $ATag_e . '';
+                $lines[] = '        </div>';
+                
                 if (($cc%$this->elementBrowserCols)==($this->elementBrowserCols-1) || $cc==($this->iLimit-1)) {
                     $lines[] = '</td></tr>';
                 } else {
@@ -558,74 +554,71 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
                 }
             } else {
                 $lines[] = '
-    					<tr class="file_list_normal">
-    						<td class="col-title nowrap">' . $filenameAndIcon . '&nbsp;</td>
-    						<td class="col-control">
-    							<div class="btn-group">' . $ATag . $ATag_e . '
-    							<a href="' . htmlspecialchars($Ahref) . '" class="btn btn-default" title="' . htmlspecialchars($lang->getLL('info')) . '">' . $this->iconFactory->getIcon('actions-document-info', Icon::SIZE_SMALL) . '</a>
-    						</td>
-    						<td class="col-clipboard" valign="top">' . $bulkCheckBox . '</td>
-    						<!-- <td class="nowrap">&nbsp;' . $pDim . '</td> -->
-    					</tr>';
+					<tr class="file_list_normal">
+						<td class="col-title nowrap">' . $filenameAndIcon . '&nbsp;</td>
+						<td class="col-control">
+							<div class="btn-group">' . $ATag . $ATag_e . '
+							<a href="' . htmlspecialchars($Ahref) . '" class="btn btn-default" title="' . htmlspecialchars($lang->getLL('info')) . '">' . $this->iconFactory->getIcon('actions-document-info', Icon::SIZE_SMALL) . '</a>
+						</td>
+						<td class="col-clipboard" valign="top">' . $bulkCheckBox . '</td>
+						<td class="nowrap">&nbsp;' . $pDim . '</td>
+					</tr>';
                 if ($pDim) {
-                    /*
-                     $lines[] = '
-                     <tr>
-                     <td class="filelistThumbnail" colspan="4">' . $ATag_alt . $clickIcon . $ATag_e . '</td>
-                     </tr>';
-                     */
                     $lines[] = '
-    					<tr>
-    						<td class="filelistThumbnail" colspan="3">' . $ATag_alt . $clickIcon . $ATag_e . '</td>
-    					</tr>';
+					<tr>
+						<td class="filelistThumbnail" colspan="3">' . $ATag_alt . $clickIcon . $ATag_e . '</td>
+					</tr>';
                 }
             }
-
             // RVH: begin
             $cc++;
             // RVH: end
+           
         }
-
+        
         $markup = [];
         $markup[] = '<h3>' . htmlspecialchars($lang->getLL('files')) . ' ' . $filesCount . ':</h3>';
         $markup[] = GeneralUtility::makeInstance(FolderUtilityRenderer::class, $this)->getFileSearchField($this->searchWord);
         $markup[] = '<div id="filelist">';
-        // RVH: begin
-        // Move bulkSelector down
-        if ($noThumbs) {
-            $markup[] = '   ' . $this->getBulkSelector($filesCount);
-        }
+        // _RVH: begin
+       
         $markup[] = '   <!-- Filelisting -->';
         // $markup[] = '   <div class="table-fit">';
         
         // RVH: added if !$noThumbs ...
+        
         if (!$noThumbs) {
             // Big thumbs
             $markup[] = '           ' . implode('', $linesHeader);
-            $markup[] = '' . $this->renderListNavigation() . '';
+            if ( $this->elementBrowserPageBrowserEnable ) {
+                $markup[] = '' . $this->renderListNavigation() . '';
+            }
             // $markup[] = '   <div class="table-filelist">';
             $markup[] = '       <table class="table" id="typo3-filelist">';
             $markup[] = '           ' . implode('', $lines);
             $markup[] = '       </table';
             // $markup[] = '   </div>';
         } else {
+            if ( $this->elementBrowserPageBrowserEnable ) {
+                $markup[] = '' . $this->renderListNavigation() . '';
+            }
             $markup[] = '       <table class="table table-striped table-hover" id="typo3-filelist">';
             $markup[] = '           ' . implode('', $lines);
             $markup[] = '       </table>';
         }
-
-       // $markup[] = '   </div>';
-       
-        // RVH: end
+        
+        // $markup[] = '   </div>';
+        
+        // _RVH: end
         $markup[] = ' </div>';
-        if (!$noThumbs) {
-            $markup[] = '   ' . $this->getBulkSelector($filesCount);
-        }
-        $content = implode('', $markup);
 
+        $markup[] = '   ' . $this->getBulkSelector($filesCount);
+
+        $content = implode('', $markup);
+        
         return $content;
     }
-
+    
     /**
      * Get a list of Files in a folder filtered by extension
      *
@@ -641,7 +634,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $filter->setAllowedFileExtensions($extensionList);
             $folder->setFileAndFolderNameFilters([[$filter, 'filterFileList']]);
         }
-        // RVH: begin
+        // _RVH: begin
         // return $folder->getFiles();
         
         if ($this->totalItems > $this->iLimit) {
@@ -649,8 +642,9 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         } else {
             return $folder->getFiles();
         }
+        // _RVH: end
     }
-
+    
     /**
      * Get the HTML data required for a bulk selection of files of the TYPO3 Element Browser.
      *
@@ -662,10 +656,10 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         if (!$filesCount) {
             return '';
         }
-
+        
         $lang = $this->getLanguageService();
         $out = '';
-
+        
         // Getting flag for showing/not showing thumbnails:
         $noThumbsInEB = $this->getBackendUser()->getTSConfig()['options.']['noThumbsInEB'] ?? false;
         if (!$noThumbsInEB && $this->selectedFolder) {
@@ -682,15 +676,15 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
                     $this->thisScript,
                     $addParams,
                     'id="checkDisplayThumbs"'
-                )
-                . htmlspecialchars($lang->sL('LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:displayThumbs')) . '</label></div>';
-            $out .= $thumbNailCheck;
+                    )
+                    . htmlspecialchars($lang->sL('LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:displayThumbs')) . '</label></div>';
+                    $out .= $thumbNailCheck;
         } else {
             $out .= '<div style="padding-top: 15px;"></div>';
         }
         return $out;
     }
-
+    
     /**
      * Checks if the given file is selectable in the filelist.
      *
@@ -704,7 +698,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
     {
         return true;
     }
-
+    
     /**
      * @return string[] Array of body-tag attributes
      */
@@ -715,7 +709,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             'data-elements' => json_encode($this->elements)
         ];
     }
-
+    
     /**
      * @param array $values Array of values to include into the parameters
      * @return string[] Array of parameters which have to be added to URLs
@@ -728,7 +722,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             'bparams' => $this->bparams
         ];
     }
-
+    
     /**
      * @param array $values Values to be checked
      * @return bool Returns TRUE if the given values match the currently selected item
@@ -737,7 +731,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
     {
         return false;
     }
-
+    
     /**
      * Returns the URL of the current script
      *
@@ -748,10 +742,37 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         return $this->thisScript;
     }
     
-    /*
-     * RVH: new methods
-     * 
+    // _RVH: begin new methods
+    /**
+     * Get a list of Files in a folder filtered by extension
+     *
+     * @param Folder $folder
+     * @param array $extensionList
+     * @return File[]
      */
+    protected function getCountFilesInFolder(Folder $folder, array $extensionList)
+    {
+        if (!empty($extensionList)) {
+            /** @var FileExtensionFilter $filter */
+            $filter = GeneralUtility::makeInstance(FileExtensionFilter::class);
+            $filter->setAllowedFileExtensions($extensionList);
+            $folder->setFileAndFolderNameFilters([[$filter, 'filterFileList']]);
+        }
+        
+        // getFiles($start = 0, $numberOfItems = 0, $filterMode = self::FILTER_MODE_USE_OWN_AND_STORAGE_FILTERS, $recursive = false, $sort = '', $sortRev = false)
+        return $folder->getFileCount();
+    }
+    
+    /**
+     * Get pointer for first element on the page
+     *
+     * @param int $page Page number starting with 1
+     * @return int Pointer to first element on the page (starting with 0)
+     */
+    protected function getPointerForPage($page)
+    {
+        return ($page - 1) * $this->iLimit;
+    }
     
     protected function renderListNavigation(string $renderPart = 'top')
     {
@@ -856,36 +877,4 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
 			            ];
 			            return implode($data);
     }
-    
-    /**
-     * Get a list of Files in a folder filtered by extension
-     *
-     * @param Folder $folder
-     * @param array $extensionList
-     * @return File[]
-     */
-    protected function getCountFilesInFolder(Folder $folder, array $extensionList)
-    {
-        if (!empty($extensionList)) {
-            /** @var FileExtensionFilter $filter */
-            $filter = GeneralUtility::makeInstance(FileExtensionFilter::class);
-            $filter->setAllowedFileExtensions($extensionList);
-            $folder->setFileAndFolderNameFilters([[$filter, 'filterFileList']]);
-        }
-        
-        // getFiles($start = 0, $numberOfItems = 0, $filterMode = self::FILTER_MODE_USE_OWN_AND_STORAGE_FILTERS, $recursive = false, $sort = '', $sortRev = false)
-        return $folder->getFileCount();
-    }
-    
-    /**
-     * Get pointer for first element on the page
-     *
-     * @param int $page Page number starting with 1
-     * @return int Pointer to first element on the page (starting with 0)
-     */
-    protected function getPointerForPage($page)
-    {
-        return ($page - 1) * $this->iLimit;
-    }
-    
 }

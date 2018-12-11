@@ -32,7 +32,7 @@ class FolderUtilityRenderer
      * @var LinkParameterProviderInterface
      */
     protected $parameterProvider;
-
+    
     /**
      * @param LinkParameterProviderInterface $parameterProvider
      */
@@ -40,7 +40,7 @@ class FolderUtilityRenderer
     {
         $this->parameterProvider = $parameterProvider;
     }
-
+    
     /**
      * For TBE: Makes a form for creating new folders in the filemount the user is browsing.
      * The folder creation request is sent to the tce_file.php script in the core which will handle the creation.
@@ -54,7 +54,7 @@ class FolderUtilityRenderer
         $backendUser = $this->getBackendUser();
         $userTsConfig = $backendUser->getTSConfig();
         $lang = $this->getLanguageService();
-
+        
         if (!$folderObject->checkActionPermission('write')
             || !$backendUser->isAdmin() && !($userTsConfig['options.']['createFoldersInEB'] ?? false)
             || $userTsConfig['options.']['folderTree.']['hideCreateFolder'] ?? false
@@ -62,16 +62,16 @@ class FolderUtilityRenderer
             // Do not show create folder form if it is denied
             return '';
         }
-
+            
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
         $formAction = (string)$uriBuilder->buildUriFromRoute('tce_file');
         $markup = [];
         $markup[] = '<form action="' . htmlspecialchars($formAction)
-            . '" method="post" name="editform" enctype="multipart/form-data">';
+        . '" method="post" name="editform" enctype="multipart/form-data">';
         $markup[] = '<h3>' . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:create_folder.title')) . ':</h3>';
         $markup[] = '<p><strong>' . htmlspecialchars($lang->getLL('path')) . ':</strong>'
             . htmlspecialchars($folderObject->getIdentifier()) . '</p>';
-
+                
         $a = 1;
         $markup[] = '<div class="form-group">';
         $markup[] = '<div class="input-group">';
@@ -83,7 +83,7 @@ class FolderUtilityRenderer
         $markup[] = '</div>';
         $markup[] = '<input type="hidden" name="data[newfolder][' . $a . '][target]" value="'
             . htmlspecialchars($folderObject->getCombinedIdentifier()) . '" />';
-
+            
         // Make footer of upload form, including the submit button:
         $redirectValue = $this->parameterProvider->getScriptUrl() . GeneralUtility::implodeArrayForUrl(
             '',
@@ -92,12 +92,12 @@ class FolderUtilityRenderer
             )
         );
         $markup[] = '<input type="hidden" name="data[newfolder][' . $a . '][redirect]" value="' . htmlspecialchars($redirectValue) . '" />';
-
+        
         $markup[] = '</div></form>';
-
+        
         return implode(LF, $markup);
     }
-
+    
     /**
      * Makes an upload form for uploading files to the filemount the user is browsing.
      * The files are uploaded to the tce_file.php script in the core which will handle the upload.
@@ -117,7 +117,7 @@ class FolderUtilityRenderer
         if ($count === 0) {
             return '';
         }
-
+        
         // Create header, showing upload path:
         $header = $folderObject->getIdentifier();
         $lang = $this->getLanguageService();
@@ -135,7 +135,7 @@ class FolderUtilityRenderer
         $combinedIdentifier = $folderObject->getCombinedIdentifier();
         $markup = [];
         $markup[] = '<form action="' . htmlspecialchars($formAction)
-            . '" method="post" name="editform" enctype="multipart/form-data">';
+        . '" method="post" name="editform" enctype="multipart/form-data">';
         $markup[] = '   <h3>' . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:file_upload.php.pagetitle')) . ':</h3>';
         $markup[] = '   <p><strong>' . htmlspecialchars($lang->getLL('path')) . ':</strong>' . htmlspecialchars($header) . '</p>';
         // Traverse the number of upload fields:
@@ -147,14 +147,14 @@ class FolderUtilityRenderer
             $markup[] = '</div>';
             $markup[] = '<input type="hidden" name="data[upload][' . $a . '][target]" value="'
                 . htmlspecialchars($combinedIdentifier) . '" />';
-            $markup[] = '<input type="hidden" name="data[upload][' . $a . '][data]" value="' . $a . '" />';
+                $markup[] = '<input type="hidden" name="data[upload][' . $a . '][data]" value="' . $a . '" />';
         }
         $redirectValue = $this->parameterProvider->getScriptUrl() . GeneralUtility::implodeArrayForUrl(
             '',
             $this->parameterProvider->getUrlParameters(['identifier' => $combinedIdentifier])
-        );
+            );
         $markup[] = '<input type="hidden" name="data[upload][1][redirect]" value="' . htmlspecialchars($redirectValue) . '" />';
-
+        
         if (!empty($fileExtList)) {
             $markup[] = '<div class="form-group">';
             $markup[] = '    <label>';
@@ -165,7 +165,7 @@ class FolderUtilityRenderer
             $markup[] = '    </div>';
             $markup[] = '</div>';
         }
-
+        
         $markup[] = '<div class="checkbox">';
         $markup[] = '    <label>';
         $markup[] = '    <input type="checkbox" name="overwriteExistingFiles" id="overwriteExistingFiles" value="replace" />';
@@ -174,11 +174,11 @@ class FolderUtilityRenderer
         $markup[] = '</div>';
         $markup[] = '<input class="btn btn-default" type="submit" name="submit" value="'
             . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:file_upload.php.submit')) . '" />';
-
+            
         $markup[] = '</form>';
-
+        
         $code = implode(LF, $markup);
-
+        
         // Add online media
         // Create a list of allowed file extensions in a readable format "youtube, vimeo" etc.
         $fileExtList = [];
@@ -186,30 +186,30 @@ class FolderUtilityRenderer
         foreach ($onlineMediaFileExt as $fileExt) {
             if (GeneralUtility::verifyFilenameAgainstDenyPattern('.' . $fileExt)
                 && (empty($allowedExtensions) || in_array($fileExt, $allowedExtensions, true))
-            ) {
-                $fileExtList[] = '<span class="label label-success">'
-                    . strtoupper(htmlspecialchars($fileExt)) . '</span>';
-            }
+                ) {
+                    $fileExtList[] = '<span class="label label-success">'
+                        . strtoupper(htmlspecialchars($fileExt)) . '</span>';
+                }
         }
         if (!empty($fileExtList)) {
             $formAction = (string)$uriBuilder->buildUriFromRoute('online_media');
-
+            
             $markup = [];
             $markup[] = '<form action="' . htmlspecialchars($formAction)
-                . '" method="post" name="editform1" id="typo3-addMediaForm" enctype="multipart/form-data">';
+            . '" method="post" name="editform1" id="typo3-addMediaForm" enctype="multipart/form-data">';
             $markup[] = '<h3>' . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:online_media.new_media')) . ':</h3>';
             $markup[] = '<p><strong>' . htmlspecialchars($lang->getLL('path')) . ':</strong>' . htmlspecialchars($header) . '</p>';
             $markup[] = '<div class="form-group">';
             $markup[] = '<input type="hidden" name="data[newMedia][0][target]" value="'
                 . htmlspecialchars($folderObject->getCombinedIdentifier()) . '" />';
             $markup[] = '<input type="hidden" name="data[newMedia][0][allowed]" value="'
-                . htmlspecialchars(implode(',', $allowedExtensions)) . '" />';
+                    . htmlspecialchars(implode(',', $allowedExtensions)) . '" />';
             $markup[] = '<div class="input-group">';
             $markup[] = '<input type="text" name="data[newMedia][0][url]" class="form-control" placeholder="'
-                . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:online_media.new_media.placeholder')) . '" />';
+                        . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:online_media.new_media.placeholder')) . '" />';
             $markup[] = '<div class="input-group-btn">';
             $markup[] = '<button class="btn btn-default">'
-                . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:online_media.new_media.submit')) . '</button>';
+                            . htmlspecialchars($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:online_media.new_media.submit')) . '</button>';
             $markup[] = '</div>';
             $markup[] = '</div>';
             $markup[] = '<div class="form-group">';
@@ -222,13 +222,13 @@ class FolderUtilityRenderer
             $markup[] = '</div>';
             $markup[] = '<input type="hidden" name="redirect" value="' . htmlspecialchars($redirectValue) . '" />';
             $markup[] = '</form>';
-
+                            
             $code .= implode(LF, $markup);
         }
-
-        return $code;
+            
+            return $code;
     }
-
+    
     /**
      * Get the HTML data required for the file search field of the TYPO3 Element Browser.
      *
@@ -238,8 +238,8 @@ class FolderUtilityRenderer
     public function getFileSearchField($searchWord)
     {
         $action = $this->parameterProvider->getScriptUrl()
-            . GeneralUtility::implodeArrayForUrl('', $this->parameterProvider->getUrlParameters([]));
-
+        . GeneralUtility::implodeArrayForUrl('', $this->parameterProvider->getUrlParameters([]));
+        
         $markup = [];
         $markup[] = '<form method="post" action="' . htmlspecialchars($action) . '" style="padding-bottom: 15px;">';
         $markup[] = '   <div class="input-group">';
@@ -254,9 +254,10 @@ class FolderUtilityRenderer
         $markup[] = '       </span>';
         $markup[] = '   </div>';
         $markup[] = '</form>';
+        
         return implode(LF, $markup);
     }
-
+    
     /**
      * @return LanguageService
      */
@@ -264,7 +265,7 @@ class FolderUtilityRenderer
     {
         return $GLOBALS['LANG'];
     }
-
+    
     /**
      * @return BackendUserAuthentication
      */
