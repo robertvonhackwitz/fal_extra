@@ -1,9 +1,6 @@
 TYPO3 extension `fal_extra`
 ===========================
 
-What is it about?
-^^^^^^^^^^^^^^^^^
-
 This extensions provides new features to TYPO3 FAL (both Backend and Frontend:
 
 - Include Facebook Videos
@@ -24,37 +21,19 @@ Screenshots
 -----------
 
 Facebook
-""""""""
+
 
 .. figure:: Documentation/screenshots/facebook.png
 
-Instagram
-"""""""""
-
-.. figure:: Documentation/screenshots/instagram.png
-
-Twitter
-"""""""
-
-.. figure:: Documentation/screenshots/twitter.png
-
-Flickr
-""""""
-
-.. figure:: Documentation/screenshots/flickr.png
 
 Usage
-^^^^^
 
 - Install the extension
 - Add the new elements
 
 
 Todo
-^^^^
+
 
 - Cleanup
-- Improving the regex
-- Testing
-- Configuration
-- ...
+
