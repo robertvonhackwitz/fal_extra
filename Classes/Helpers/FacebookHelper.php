@@ -19,13 +19,14 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
+
 /**
  * Class FacebookVideoHelper
  *
  * @author Thomas Löffler <loeffler@spooner-web.de>
  */
-class FacebookVideoHelper extends AbstractOEmbedHelper {
-    
+class FacebookHelper extends AbstractOEmbedHelper {
+
     /**
      * @param string $url
      * @param \TYPO3\CMS\Core\Resource\Folder $targetFolder
@@ -34,12 +35,32 @@ class FacebookVideoHelper extends AbstractOEmbedHelper {
     public function transformUrlToFile($url, \TYPO3\CMS\Core\Resource\Folder $targetFolder)
     {
         $videoId = null;
-        // Try to get the YouTube code from given url.
+        $matches = [];
+        $subMatches = [];
+        $fMatches = [];
+        
+        // Try to get Facebook code from given url.
+        if (preg_match('/facebook\.com\/watch\/\?v=*([0-9]+)/i', $url, $fMatches)) {
+           
+            $facebookWebPage = GeneralUtility::getUrl($url);
+            if (is_string($facebookWebPage)) {
+                
+                $pos = strpos($facebookWebPage, 'permalinkURL');
+                $permaLinkString = substr($facebookWebPage, $pos, 100);
+                $permaLinkArr = explode('/',$permaLinkString);
+
+                $videoId = $permaLinkArr[1] . '_' . $permaLinkArr[3];
+              
+            }
+        }   
+        
         // These formats are supported with and without http(s)://
         // - facebook.com/<site>/videos/<code> # Share URL
-        if (preg_match('/facebook\.com\/.*\/videos\/*([0-9]+)/i', $url, $matches)) {
-            $videoId = $matches[1];
-        }
+        if (preg_match('/facebook\.com\/(.*)\/videos\/*([0-9]+)/i', $url, $matches)) {
+            // Video Id = Channel name + '_' + Video ID
+            $videoId = $matches[1] . '_' . $matches[2];
+        } 
+        
         if (empty($videoId)) {
             return null;
         }
@@ -72,6 +93,7 @@ class FacebookVideoHelper extends AbstractOEmbedHelper {
         
         return $file;
     }
+    
     
     /**
      * Get meta data for OnlineMedia item
@@ -109,8 +131,18 @@ class FacebookVideoHelper extends AbstractOEmbedHelper {
     public function getPublicUrl(\TYPO3\CMS\Core\Resource\File $file, $relativeToCurrentScript = false)
     {
         $videoId = $this->getOnlineMediaId($file);
-        $videoLink = sprintf('https://www.facebook.com/video.php?v=%s', $videoId);
-        return 'https://www.facebook.com/v2.5/plugins/video.php?href=' . urlencode($videoLink);
+        $video = GeneralUtility::trimExplode('_', $videoId);
+        $videoId = $video[1];
+        $videoChannel = $video[0];
+        $facebookUrl = sprintf(
+            'https://www.facebook.com/plugins/video.php?href=https://www.facebook.com/%s/videos/%s',
+            $videoChannel,
+            $videoId
+            );
+
+        // $videoLink = sprintf('https://www.facebook.com/video.php?v=%s', $videoId);
+        // return 'https://www.facebook.com/v2.5/plugins/video.php?href=' . urlencode($videoLink);
+        return $facebookUrl;
     }
     
     /**
@@ -123,10 +155,20 @@ class FacebookVideoHelper extends AbstractOEmbedHelper {
         $temporaryFileName = $this->getTempFolderPath() . 'facebook_' . md5($videoId) . '.jpg';
         
         if (!file_exists($temporaryFileName)) {
-            $videoInformation = $this->getOEmbedData($videoId);
-            if (!empty($videoInformation['format'])) {
-                $biggestFormat = array_pop($videoInformation['format']);
-                $previewImage = GeneralUtility::getUrl($biggestFormat['picture']);
+
+            $fbPage = GeneralUtility::getUrl($this->getPublicUrl($file));
+            /*
+            $pattern = '/<img (.*) src="(https:\/\/scontent\-[a-zA-Z0-9\-\/\.\_\?\=\&\;]+)/';
+            preg_match($pattern, $fbPage, $matches);
+            */
+            $dom = new \DOMDocument;
+            @$dom->loadHTML($fbPage);
+            $tags = $dom->getElementsByTagName('img');
+            $imgSrc = $tags[0]->getAttribute('src');
+
+            if($imgSrc!='') {
+    
+                $previewImage = GeneralUtility::getUrl($imgSrc);
                 if ($previewImage !== false) {
                     file_put_contents($temporaryFileName, $previewImage);
                     GeneralUtility::fixPermissions($temporaryFileName);
@@ -147,3 +189,4 @@ class FacebookVideoHelper extends AbstractOEmbedHelper {
         return 'https://graph.facebook.com/' . $mediaId . '/';
     }
 }
+

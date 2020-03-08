@@ -11,7 +11,7 @@
  ***************************************************************/
 
 $EM_CONF[$_EXTKEY] = array (
-  'title' => 'Fal Extras',
+  'title' => 'Fal Extra',
   'description' => 'Fal Extra features',
   'category' => 'be',
   'author' => 'Robert von Hackwitz',
