@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<xliff version="1.0">
+	<file source-language="en" target-language="it" datatype="plaintext" original="messages" date="2019-07-05T02:16:38Z" product-name="frontend">
+		<header/>
+		<body>
+			<trans-unit id="itemsPerPage">
+				<source>Show:</source>
+				<target state="translated">Mostra:</target>
+			</trans-unit>
+			<trans-unit id="rangeIndicator">
+				<source>%1$d - %2$d of %3$d</source>
+				<target state="translated">%1$d - %2$d di %3$d</target>
+			</trans-unit>
+			<trans-unit id="sortBy">
+				<source>Sort by:</source>
+				<target state="translated">Ordina:</target>
+			</trans-unit>
+			
+		</body>
+	</file>
+</xliff>

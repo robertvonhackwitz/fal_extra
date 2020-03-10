@@ -1,9 +1,9 @@
 <?php
 defined('TYPO3_MODE') || die();
 
-$GLOBALS['TBE_STYLES']['skins']['fal_extra'] = [
-    'name' => 'fal_extra',
-    'stylesheetDirectories' => [
-        'css' => 'EXT:fal_extra/Resources/Public/Css/'
-    ]
-];
+call_user_func(
+    function()
+    {
+        $GLOBALS['TBE_STYLES']['stylesheets']['fal_extra'] = 'EXT:fal_extra/Resources/Public/Css/FalExtra.css';
+    }
+);
