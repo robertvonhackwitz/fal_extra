@@ -2,15 +2,16 @@
 falOnlineMediaFacebook = 0
 
 # Element Browser Thumbnails
-# cat=Element Browser Thumbnails; type=boolean; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_thumbs.enable
-elementBrowserThumbEnable = 0
+# cat=Element Browser Big Thumbnails; type=boolean; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_thumbs.enable
+elementBrowserBigThumbEnable = 0
 
-# cat=Element Browser Thumbnails; type=int; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB.maxTitleLength
-elementBrowserMaxTitleLen = 25
-
-# cat=Element Browser Thumbnails; type=int; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB.cols
-elementBrowserCols = 3
+# cat=Element Browser Big Thumbnails; type=int; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB.maxTitleLength
+elementBrowserMaxTitleLen = 15
 
 # Element Browser Page Browser
 # cat=Element Browser Page Browser; type=boolean; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:elB_pagebrowser.enable
 elementBrowserPageBrowserEnable = 0
+
+# Video Thumbnails
+# cat=Fal Additional Features; type=boolean; label=LLL:EXT:fal_extra/Resources/Private/Language/locallang_be.xlf:fal_videothumbnail.enable
+falVideoThumbnail = 0

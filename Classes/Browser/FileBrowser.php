@@ -30,9 +30,12 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Recordlist\Tree\View\LinkParameterProviderInterface;
+// _RVH: begin
+// use TYPO3\CMS\Recordlist\View\FolderUtilityRenderer;
 use RVH\FalExtra\View\FolderUtilityRenderer;
 use TYPO3\CMS\Recordlist\Browser\AbstractElementBrowser;
 use TYPO3\CMS\Recordlist\Browser\ElementBrowserInterface;
+// _RVH: end
 
 /**
  * Browser for files
@@ -77,10 +80,17 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
      */
     protected $thumbnailConfiguration = [];
     
+    // _RVH: begin
+    
     /**
      * @var int
      */
-    protected $elementBrowserThumbEnable = 0;
+    protected $elementBrowserBigThumbEnable = 0;
+    
+    /**
+     * @var int
+     */
+    protected $elementBrowserPageBrowserEnable = 0;
     
     /**
      * @var int
@@ -107,43 +117,53 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
      * @var integer
      */
     protected $elementBrowserCols = 3;
-    
-    /**
-     * @var integer
-     */
-    protected $elementBrowserPageBrowserEnable = 0;
-    
+
     /**
      * @var string
      */
     protected $sortBy = 'tstamp:DESC';
     
+    // _RVH: end
     
     /**
      * Loads additional JavaScript
      */
     protected function initialize()
     {
-        parent::initialize();
-        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Recordlist/BrowseFiles');
-        $this->pageRenderer->addCssFile($GLOBALS['TBE_STYLES']['stylesheets']['fal_extra']);
-        $this->fileRepository = GeneralUtility::makeInstance(FileRepository::class);
+        {
+            parent::initialize();
+            $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Recordlist/BrowseFiles');
+            $this->pageRenderer->addCssFile($GLOBALS['TBE_STYLES']['stylesheets']['fal_extra']);
+            $this->fileRepository = GeneralUtility::makeInstance(FileRepository::class);
+            
+            $fileListConfiguration = $this->getBackendUser()->getTSConfig()['options.']['file_list.'];
+            
+            $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fal_extra']);
+            $this->elementBrowserBigThumbEnable = (int)$extensionConfiguration['elementBrowserBigThumbEnable'];
+            $this->elementBrowserPageBrowserEnable = (int)$extensionConfiguration['elementBrowserPageBrowserEnable'];
+            $this->elementBrowserMaxTitleLen = (int)$extensionConfiguration['elementBrowserMaxTitleLen'];
+            
+            if ($this->elementBrowserBigThumbEnable) {
+                $thumbnailConfig = $fileListConfiguration['bigThumbnail.'] ?? [];
+                
+                if (isset($thumbnailConfig['width'])) {
+                    $this->thumbnailConfiguration['width'] = $thumbnailConfig['width'];
+                }
+                
+                if (isset($thumbnailConfig['height'])) {
+                    $this->thumbnailConfiguration['height'] = $thumbnailConfig['height'];
+                }
+            } else {
+                $thumbnailConfig = $fileListConfiguration['thumbnail.'] ?? [];
+                if (isset($thumbnailConfig['width']) && MathUtility::canBeInterpretedAsInteger($thumbnailConfig['width'])) {
+                    $this->thumbnailConfiguration['width'] = (int)$thumbnailConfig['width'];
+                }
+                if (isset($thumbnailConfig['height']) && MathUtility::canBeInterpretedAsInteger($thumbnailConfig['height'])) {
+                    $this->thumbnailConfiguration['height'] = (int)$thumbnailConfig['height'];
+                }
+            }
 
-        $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fal_extra']);
-        $this->elementBrowserThumbEnable = (int)$extensionConfiguration['elementBrowserThumbEnable'];
-        $this->elementBrowserPageBrowserEnable = (int)$extensionConfiguration['elementBrowserPageBrowserEnable'];
-        $this->elementBrowserMaxTitleLen = (int)$extensionConfiguration['elementBrowserMaxTitleLen'];
-
-        $thumbnailConfig = $this->getBackendUser()->getTSConfig()['options.']['file_list.']['bigThumbnail.'] ?? [];
-        
-        if (isset($thumbnailConfig['width'])) {
-            $this->thumbnailConfiguration['width'] = $thumbnailConfig['width'];
         }
-        
-        if (isset($thumbnailConfig['height'])) {
-            $this->thumbnailConfiguration['height'] = $thumbnailConfig['height'];
-        }
- 
     }
     
     /**
@@ -174,6 +194,10 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         } else {
             $GLOBALS['BE_USER']->uc['moduleData']['file_list']['jumpLimit'] = $this->iLimit;
         }
+        //
+        
+        // _RVH: old
+        // $this->iLimit = (int)GeneralUtility::_GP('jumpLimit')>0?(int)GeneralUtility::_GP('jumpLimit'):$this->iLimit;
         
     }
     
@@ -287,7 +311,9 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         // Putting the parts together, side by side:
         $markup = [];
         $markup[] = '<!-- Wrapper table for folder tree / filelist: -->';
-
+        // _RVH: begin
+        // added class fal-extra-browser
+        // $markup[] = '<div class="element-browser">';
         $markup[] = '<div class="element-browser fal-extra-browser">';
         // _RVH: end
         $markup[] = '   <div class="element-browser-panel element-browser-main">';
@@ -301,8 +327,12 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         $markup[] = '           <div class="element-browser-body">';
         $markup[] = '               ' . $this->doc->getFlashMessages();
         $markup[] = '               ' . $files;
+        // _RVH: begin: DIVS added around $uploadForm & $createFolder
+        // $markup[] = '               ' . $uploadForm;
+        // $markup[] = '               ' . $createFolder;
         $markup[] = '               <div id="t3UploadForm">' . $uploadForm . '</div>';
         $markup[] = '               <div id="t3CreateFolder">' . $createFolder . '</div>';
+        // _RVH: end
         $markup[] = '           </div>';
         $markup[] = '       </div>';
         $markup[] = '   </div>';
@@ -330,7 +360,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         $lang = $this->getLanguageService();
         // _RVH: begin
         // If enabled fal_extra use maxTitleLen from EXT Settings
-        if ($this->elementBrowserThumbEnable && !$noThumbs) {
+        if ($this->elementBrowserBigThumbEnable && !$noThumbs) {
             $titleLen = $this->elementBrowserMaxTitleLen;
             $titleLenFolder =(int)$this->getBackendUser()->uc['titleLen'];
         } else {
@@ -443,7 +473,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
                 
                 // RVH: begin: if fal_extra thumbnails enabled use CONTEXT_IMAGECROPSCALEMASK otherwise the classical way
                 
-                if ($this->elementBrowserThumbEnable) {
+                if ($this->elementBrowserBigThumbEnable) {
                     $processedFile = $fileObject->process(
                         ProcessedFile::CONTEXT_IMAGECROPSCALEMASK,
                         $this->thumbnailConfiguration

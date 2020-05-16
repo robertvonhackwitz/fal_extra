@@ -1,1 +1,56 @@
 @charset "UTF-8";
+
+/***/
+.fal-extra-browser {
+	
+}
+
+.fal-extra-browser #filelist .table>tbody>tr>td, 
+.fal-extra-browser #filelist .table>tbody>tr>th,
+.fal-extra-browser #filelist .table>tfoot>tr>td,
+.fal-extra-browser #filelist .table>tfoot>tr>th, 
+.fal-extra-browser #filelist .table>thead>tr>td, 
+.fal-extra-browser #filelist .table>thead>tr>th {
+    padding: 6px;
+    line-height: 1.5;
+    vertical-align: top;
+    border: 1px solid #ccc;
+}
+.fal-extra-browser #filelist span.fileicon.btn.btn-default {
+	padding:0;
+}
+.fal-extra-browser #filelist .btn-group.btn-group-fal-extra a,
+.fal-extra-browser #filelist .btn-group.btn-group-fal-extra label {
+	margin:0 4px 0 0;
+}
+.fal-extra-browser #filelist span.fileicon.btn.btn-default .icon-size-default {
+	width:30px;
+	height:30px;
+	line-height:30px;
+}
+.fal-extra-browser #filelist span.fileicon.btn.btn-default .icon-markup img {
+	width:26px;
+	height:26px;
+	display:block;
+	margin: 2px 0 0 0;
+}
+
+.fal-extra-browser #filelist .big-thumb-image {
+	margin:4px 0;
+	padding:2px;
+	border:1px solid #CCC;
+}
+
+.fal-extra-browser #filelist .big-thumb-image img {
+	
+}
+
+.fal-extra-browser #filelist .big-thumb-caption {
+	background-color:#eee;
+	padding:5px 3px;
+}
+
+.fal-extra-browser #filelist .form-control {
+	min-width: auto;
+}
+

@@ -17,7 +17,8 @@ call_user_func(
             $GLOBALS['TYPO3_CONF_VARS']['SYS']['mediafile_ext'] .= ',facebook';
         }
         
-        if($settings['elementBrowserThumbEnable'] == 1) {
+        // Big Thumbnails
+        if($settings['elementBrowserBigThumbEnable'] == 1 || $settings['elementBrowserPageBrowserEnable'] == 1) {
             $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/browse_links.php']['browserRendering'][] = \RVH\FalExtra\Hooks\ElementBrowserController::class;
             \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addUserTSConfig('
                 options.file_list.bigThumbnail {
@@ -25,6 +26,19 @@ call_user_func(
                     height = 128c
                 }
             ');
+            
+        }
+        
+        if($settings['falVideoThumbnail'] == 1) {
+            $GLOBALS['TYPO3_CONF_VARS']['GFX']['videofile_ext'] = 'mp4,avi,mpeg';
+            /** @var \TYPO3\CMS\Extbase\SignalSlot\Dispatcher $signalSlotDispatcher */
+            $signalSlotDispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class);
+            $signalSlotDispatcher->connect(
+                TYPO3\CMS\Core\Resource\ResourceStorage::class,
+                \TYPO3\CMS\Core\Resource\Service\FileProcessingService::SIGNAL_PreFileProcess,
+                \RVH\FalExtra\Slots\PreviewProcessingSlot::class,
+                'processFile'
+                );
             
         }
         

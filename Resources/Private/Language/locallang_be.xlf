@@ -33,6 +33,9 @@
 		    <trans-unit id="sortBy" xml:space="preserve">
 	                <source>Sort by:</source>
 		    </trans-unit>
+		    <trans-unit id="fal_videothumbnail.enable">
+		    	<source>Enable Video Thumbnails</source>
+		    </trans-unit>
         </body>
     </file>
 </xliff>
